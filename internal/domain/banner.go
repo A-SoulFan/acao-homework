@@ -1,6 +1,6 @@
 package domain
 
-type BannerRepository interface {
+type BannerRepo interface {
 	FindAllByType(t string) ([]*Banner, error)
 }
 

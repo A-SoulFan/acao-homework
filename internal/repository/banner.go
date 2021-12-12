@@ -9,17 +9,15 @@ const (
 	bannerTableName = "banner"
 )
 
-type (
-	defaultBannerModel struct {
-		conn *gorm.DB
-	}
-)
-
-func NewDefaultBannerModel(conn *gorm.DB) domain.BannerRepository {
-	return &defaultBannerModel{conn: conn}
+type defaultBannerRepo struct {
+	conn *gorm.DB
 }
 
-func (m *defaultBannerModel) FindAllByType(t string) ([]*domain.Banner, error) {
+func NewDefaultBannerRepo(conn *gorm.DB) domain.BannerRepo {
+	return &defaultBannerRepo{conn: conn}
+}
+
+func (m *defaultBannerRepo) FindAllByType(t string) ([]*domain.Banner, error) {
 	var list []*domain.Banner
 	result := m.conn.Table(bannerTableName).Where("type = ? AND deleted_at = 0", t).Order("sort").Find(&list)
 	if result.Error != nil {
