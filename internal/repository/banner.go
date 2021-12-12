@@ -1,7 +1,7 @@
-package mysql
+package repository
 
 import (
-	"github.com/A-SoulFan/support-api/domain"
+	"github.com/A-SoulFan/acao-homework/internal/domain"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +15,7 @@ type (
 	}
 )
 
-func NewDefaultBannerModel(conn *gorm.DB) domain.BannerModel {
+func NewDefaultBannerModel(conn *gorm.DB) domain.BannerRepository {
 	return &defaultBannerModel{conn: conn}
 }
 

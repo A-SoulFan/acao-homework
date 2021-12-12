@@ -1,15 +1,7 @@
 package domain
 
-import (
-	"github.com/A-SoulFan/support-api/types"
-)
-
-type BannerModel interface {
+type BannerRepository interface {
 	FindAllByType(t string) ([]*Banner, error)
-}
-
-type BannerLogic interface {
-	GetList(req types.BannerListReq) (*types.BannerListReply, error)
 }
 
 type Banner struct {

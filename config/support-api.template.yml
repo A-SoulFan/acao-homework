@@ -1,0 +1,13 @@
+db:
+  dsn: username:password@tcp(localhost:port)/database?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+  debug: true
+  setMaxIdleConns: 2 # 设置空闲连接池中连接的最大数量
+  setMaxOpenConns: 4 # 设置打开数据库连接的最大数量
+  setConnMaxLifetime: 6 # 设置了连接可复用的最大时间 单位分钟
+log:
+  filename: /tmp/open.log
+  maxSize: 500
+  maxBackups: 3
+  maxAge: 3
+  level: "debug"
+  stdout: true
