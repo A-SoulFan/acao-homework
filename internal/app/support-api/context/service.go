@@ -1,59 +1,33 @@
 package context
 
 import (
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/config"
+	"context"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/cache"
-	"github.com/A-SoulFan/acao-homework/internal/pkg/cache/driver"
+	"github.com/google/wire"
 	"go.uber.org/zap"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 )
 
+var ProviderSet = wire.NewSet(NewServiceContext)
+
 type ServiceContext struct {
-	Logger *zap.SugaredLogger
-	Config config.Config
-	Db     *gorm.DB
-	Cache  cache.Interface
+	db     *gorm.DB
+	logger *zap.Logger
+	cache  cache.CacheInterface
 }
 
-func NewServiceContext(c config.Config) *ServiceContext {
+func NewServiceContext(logger *zap.Logger, db *gorm.DB, cache cache.CacheInterface) *ServiceContext {
 	return &ServiceContext{
-		Logger: newLogger(c),
-		Config: c,
-		Db:     newGormDbConn(c),
-		Cache:  newCache(c),
+		db:     db,
+		logger: logger,
+		cache:  cache,
 	}
 }
 
-func (svcCtx *ServiceContext) IsDevEnvironment() bool {
-	return strings.ToUpper(svcCtx.Config.App.Env) == "DEV"
+func (svc *ServiceContext) GetCache() cache.CacheInterface {
+	return svc.cache
 }
 
-func (svcCtx *ServiceContext) Stop() error {
-	return svcCtx.Logger.Sync()
-}
-
-func newGormDbConn(c config.Config) *gorm.DB {
-	db, err := gorm.Open(mysql.Open(c.Mysql.DataSource), &gorm.Config{
-		SkipDefaultTransaction: false,
-		Logger:                 nil,
-	})
-	if err != nil {
-		panic(err)
-	}
-	return db
-}
-
-func newCache(c config.Config) cache.Interface {
-	return driver.NewGoCache(5*time.Minute, 6*time.Minute)
-}
-
-func newLogger(c config.Config) *zap.SugaredLogger {
-	if logger, err := zap.NewProduction(); err != nil {
-		panic(err)
-	} else {
-		return logger.Sugar()
-	}
+func (svc *ServiceContext) WithDatabaseContext(ctx context.Context) *gorm.DB {
+	return svc.db.WithContext(ctx)
 }

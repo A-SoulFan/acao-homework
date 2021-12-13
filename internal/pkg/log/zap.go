@@ -1,6 +1,7 @@
 package log
 
 import (
+	"github.com/google/wire"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -18,12 +19,14 @@ type Options struct {
 	Stdout     bool
 }
 
-func NewOptions(v *viper.Viper, key string) (*Options, error) {
+var ProviderSet = wire.NewSet(NewLogger, NewOptions)
+
+func NewOptions(v *viper.Viper) (*Options, error) {
 	var (
 		err error
 		o   = &Options{}
 	)
-	if err = v.UnmarshalKey(key, o); err != nil {
+	if err = v.UnmarshalKey("log", o); err != nil {
 		return nil, err
 	}
 

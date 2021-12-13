@@ -2,8 +2,11 @@ package config
 
 import (
 	"fmt"
+	"github.com/google/wire"
 	"github.com/spf13/viper"
 )
+
+var ProviderSet = wire.NewSet(New)
 
 // New 初始化viper
 func New(path string) (*viper.Viper, error) {

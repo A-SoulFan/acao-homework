@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -8,6 +9,8 @@ import (
 	"gorm.io/gorm"
 	"time"
 )
+
+var ProviderSet = wire.NewSet(NewOptions, NewDatabase)
 
 // Options is  configuration of database
 type Options struct {
@@ -18,10 +21,10 @@ type Options struct {
 	SetConnMaxLifetime int
 }
 
-func NewOptions(v *viper.Viper, logger *zap.Logger, key string) (*Options, error) {
+func NewOptions(v *viper.Viper, logger *zap.Logger) (*Options, error) {
 	var err error
 	o := &Options{}
-	if err = v.UnmarshalKey(key, o); err != nil {
+	if err = v.UnmarshalKey("db", o); err != nil {
 		return nil, errors.Wrap(err, "unmarshal db option error")
 	}
 
