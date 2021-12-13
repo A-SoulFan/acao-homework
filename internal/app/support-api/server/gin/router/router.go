@@ -6,11 +6,13 @@ import (
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/server/gin/middleware"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/transports/http"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // 根据业务可以拆分不同 router
-func InitRouter(svc *svcCtx.ServiceContext) http.InitRouters {
+func InitRouter(svc *svcCtx.ServiceContext, logger *zap.Logger) http.InitRouters {
 	return func(r *gin.Engine) {
+		r.Use(middleware.NewErrorInterceptor(logger).Handler())
 		r.Use(middleware.Cors())
 
 		// // 随机溜

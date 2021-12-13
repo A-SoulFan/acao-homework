@@ -50,7 +50,7 @@ func InitServer(configFile string) (*Server, error) {
 	}
 	cacheInterface := cache.NewGoCache(cacheOptions)
 	serviceContext := context.NewServiceContext(logger, db, cacheInterface)
-	initRouters := router.InitRouter(serviceContext)
+	initRouters := router.InitRouter(serviceContext, logger)
 	engine := http.NewRouter(httpOptions, logger, initRouters)
 	server, err := http.NewServer(httpOptions, logger, engine)
 	if err != nil {

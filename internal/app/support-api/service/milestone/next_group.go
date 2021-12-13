@@ -8,7 +8,6 @@ import (
 	milestoneTask "github.com/A-SoulFan/acao-homework/internal/app/support-api/task/milestone"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
-	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/err"
 	"github.com/A-SoulFan/acao-homework/internal/repository"
 	"gorm.io/gorm"
 )
@@ -23,7 +22,7 @@ func NewGroupLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) NextGroup
 	return NextGroupLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		dbCtx:  svcCtx.Db.WithContext(ctx),
+		dbCtx:  svcCtx.WithDatabaseContext(ctx),
 	}
 }
 
@@ -49,8 +48,7 @@ func (ng *NextGroupLogic) NextGroup(req types.NextGroupReq) (*types.PaginationLi
 	}
 
 	if list, err = repository.NewMilestoneRepo(ng.dbCtx).FindAllByTimestamp(timestamp, req.Size+uint(1), "DESC"); err != nil {
-		ng.svcCtx.Logger.Error(err)
-		return nil, appErr.NewError("服务器异常，请稍后再试")
+		return nil, err
 	}
 
 	if len(list) > int(req.Size) {

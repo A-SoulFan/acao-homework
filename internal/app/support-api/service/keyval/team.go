@@ -3,7 +3,7 @@ package logic
 import (
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
-	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/err"
+	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
 	"github.com/A-SoulFan/acao-homework/internal/repository"
 
 	"context"
@@ -28,24 +28,22 @@ func NewTeamLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) TeamLogic 
 	return TeamLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		dbCtx:  svcCtx.Db.WithContext(ctx),
+		dbCtx:  svcCtx.WithDatabaseContext(ctx),
 	}
 }
 
 func (t *TeamLogic) GetVideos(req types.TeamVideosReq) (*types.TeamVideosResp, error) {
 	val, err := repository.NewDefaultKeyValueRepo(t.dbCtx).FindOneByKey(teamVideos)
 	if err != nil {
-		t.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
 	if val == nil {
-		return nil, appErr.NewError("获取数据失败")
+		return nil, appErr.NewServiceError("获取数据失败").Wrap(err)
 	}
 
 	var list []interface{}
 	if err := json.Unmarshal(val.Value, &list); err != nil {
-		t.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
@@ -60,17 +58,15 @@ func (t *TeamLogic) GetEvents(req types.TeamEventsReq) (*types.TeamEventsResp, e
 	queryKey := fmt.Sprintf("%s%s", teamEventsPrefix, req.Year)
 	val, err := repository.NewDefaultKeyValueRepo(t.dbCtx).FindOneByKey(queryKey)
 	if err != nil {
-		t.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
 	if val == nil {
-		return nil, appErr.NewError("获取数据失败")
+		return nil, appErr.NewServiceError("获取数据失败").Wrap(err)
 	}
 
 	var list []interface{}
 	if err := json.Unmarshal(val.Value, &list); err != nil {
-		t.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 

@@ -2,6 +2,7 @@ package milestone
 
 import (
 	"context"
+	"log"
 	"sync"
 	"time"
 
@@ -31,7 +32,7 @@ func Register(svc *svcCtx.ServiceContext) {
 		_tr = &taskRebuildCache{
 			svcCtx:        svc,
 			cacheData:     make([]*domain.Milestone, 0, defaultCacheNumber),
-			milestoneRepo: repository.NewMilestoneRepo(svc.Db.WithContext(context.TODO())),
+			milestoneRepo: repository.NewMilestoneRepo(svc.WithDatabaseContext(context.TODO())),
 		}
 
 		_tr.init()
@@ -88,17 +89,17 @@ func search(milestones []*domain.Milestone, startTimestamp uint) int {
 }
 
 func ticker(tr *taskRebuildCache, svc *svcCtx.ServiceContext) {
-	ticker := time.NewTicker(5 * time.Minute)
+	tk := time.NewTicker(5 * time.Minute)
 
 	stopChan := make(chan bool)
-	go func(ticker *time.Ticker) {
-		defer ticker.Stop()
+	go func(_tk *time.Ticker) {
+		defer _tk.Stop()
 
 		for {
 			select {
-			case <-ticker.C:
+			case <-_tk.C:
 				if err := tr.RebuildCache(); err != nil {
-					svc.Logger.Error(err)
+					log.Println(err)
 				}
 				//svc.Logger.Info("milestone.task.rebuildCache: successfully.")
 			case stop := <-stopChan:
@@ -107,5 +108,5 @@ func ticker(tr *taskRebuildCache, svc *svcCtx.ServiceContext) {
 				}
 			}
 		}
-	}(ticker)
+	}(tk)
 }

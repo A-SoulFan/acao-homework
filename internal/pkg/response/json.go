@@ -14,7 +14,6 @@ func NewSuccessJsonResponse(data interface{}) *JsonResponse {
 	}
 }
 
-// NewServerErrorResponse TODO: 后续实现类型区分
 func NewServerErrorResponse(err error) *JsonResponse {
 	return &JsonResponse{
 		Code:    1,

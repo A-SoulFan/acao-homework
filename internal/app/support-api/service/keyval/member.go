@@ -8,7 +8,7 @@ import (
 
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
-	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/err"
+	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
 	"github.com/A-SoulFan/acao-homework/internal/repository"
 
 	"gorm.io/gorm"
@@ -30,24 +30,22 @@ func NewMemberLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) MemberLo
 	return MemberLogic{
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		dbCtx:  svcCtx.Db.WithContext(ctx),
+		dbCtx:  svcCtx.WithDatabaseContext(ctx),
 	}
 }
 
 func (m *MemberLogic) GetAll() (*types.MemberAll, error) {
 	val, err := repository.NewDefaultKeyValueRepo(m.dbCtx).FindOneByKey(memberListKey)
 	if err != nil {
-		m.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
 	if val == nil {
-		return nil, appErr.NewError("获取数据失败")
+		return nil, appErr.NewServiceError("获取数据失败").Wrap(err)
 	}
 
 	var list []interface{}
 	if err := json.Unmarshal(val.Value, &list); err != nil {
-		m.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
@@ -59,17 +57,15 @@ func (m *MemberLogic) GetExperience(req types.MemberExperienceReq) (*types.Membe
 
 	val, err := repository.NewDefaultKeyValueRepo(m.dbCtx).FindOneByKey(queryKey)
 	if err != nil {
-		m.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
 	if val == nil {
-		return nil, appErr.NewError("获取数据失败")
+		return nil, appErr.NewServiceError("获取数据失败").Wrap(err)
 	}
 
 	var list []interface{}
 	if err := json.Unmarshal(val.Value, &list); err != nil {
-		m.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
@@ -86,17 +82,15 @@ func (m *MemberLogic) GetVideos(req types.MemberVideoReq) (*types.MemberExperien
 
 	val, err := repository.NewDefaultKeyValueRepo(m.dbCtx).FindOneByKey(queryKey)
 	if err != nil {
-		m.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
 	if val == nil {
-		return nil, appErr.NewError("获取数据失败")
+		return nil, appErr.NewServiceError("获取数据失败").Wrap(err)
 	}
 
 	var list []interface{}
 	if err := json.Unmarshal(val.Value, &list); err != nil {
-		m.svcCtx.Logger.Error(err)
 		return nil, err
 	}
 
