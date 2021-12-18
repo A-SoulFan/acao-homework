@@ -2,17 +2,26 @@ package repository
 
 import (
 	"fmt"
-	"github.com/A-SoulFan/acao-homework/internal/domain"
-	"gorm.io/gorm"
 	"time"
+
+	"github.com/A-SoulFan/acao-homework/internal/domain"
+	"github.com/A-SoulFan/acao-homework/internal/launch"
 )
 
-type defaultMilestoneRepo struct {
-	conn *gorm.DB
+func (m *defaultMilestoneRepo) SetCache(milestones []*domain.Milestone) {
+	launch.MilestoneCache.Set(milestones)
 }
 
-func NewMilestoneRepo(conn *gorm.DB) domain.MilestoneRepo {
-	return &defaultMilestoneRepo{conn: conn}
+func (m *defaultMilestoneRepo) GetCache() []*domain.Milestone {
+	return launch.MilestoneCache.Get()
+}
+
+type defaultMilestoneRepo struct {
+	defaultRepo
+}
+
+func NewMilestoneRepo() domain.MilestoneRepo {
+	return &defaultMilestoneRepo{}
 }
 
 func (m *defaultMilestoneRepo) Insert(data *domain.Milestone) error {

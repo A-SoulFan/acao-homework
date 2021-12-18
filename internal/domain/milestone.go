@@ -1,12 +1,18 @@
 package domain
 
 type MilestoneRepo interface {
+	defaultRepo
+	// mysql gorm
 	Insert(data *Milestone) error
 	Delete(primaryKey uint) error
 	Update(data *Milestone) error
 	SearchTitles(keyword string, limit uint) ([]*Milestone, error)
 	FindOne(primaryKey uint) (*Milestone, error)
 	FindAllByTimestamp(startTimestamp, limit uint, order string) ([]*Milestone, error)
+
+	// cache
+	SetCache([]*Milestone)
+	GetCache() []*Milestone
 }
 
 type Milestone struct {

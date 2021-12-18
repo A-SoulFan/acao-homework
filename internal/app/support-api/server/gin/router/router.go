@@ -12,21 +12,24 @@ import (
 // 根据业务可以拆分不同 router
 func InitRouter(svc *svcCtx.ServiceContext, logger *zap.Logger) http.InitRouters {
 	return func(r *gin.Engine) {
+
+		defaultHandler := handler.NewDefaultSupportAPIhandler(svc)
+
 		r.Use(middleware.NewErrorInterceptor(logger).Handler())
 		r.Use(middleware.Cors())
 
-		// // 随机溜
-		// r.GET("/api/stroll/random", handler.RandomStrollHandler(svc))
-		// r.GET("/api/stroll/last-update-time", handler.LastUpdateTimeHandler(svc))
+		// 随机溜
+		r.GET("/api/stroll/random", handler.RandomStrollHandler(svc))
+		r.GET("/api/stroll/last-update-time", handler.LastUpdateTimeHandler(svc))
 
 		// 大事件
-		r.GET("/api/milestone/next-group", handler.MilestoneNextGroup(svc))
+		r.GET("/api/milestone/next-group", defaultHandler.MilestoneServiceNextGroup())
 
 		// 下列为新人指南相关API 暂时实现在这里
 		// 注意 response request 风格均不相同
 
-		// // 推荐切片
-		// r.GET("/api/recommend-slice", handler.RecommendHandler(svc))
+		// 推荐切片
+		r.GET("/api/recommend-slice", handler.RecommendHandler(svc))
 
 		// 头部图片
 		r.GET("/asf/mobile/headpicture", handler.GetBannerListHandler(svc))

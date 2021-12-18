@@ -5,28 +5,24 @@ import (
 	"time"
 
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	milestoneTask "github.com/A-SoulFan/acao-homework/internal/app/support-api/task/milestone"
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
-	"github.com/A-SoulFan/acao-homework/internal/repository"
-	"gorm.io/gorm"
 )
 
-type NextGroupLogic struct {
-	ctx    context.Context
-	svcCtx *svcCtx.ServiceContext
-	dbCtx  *gorm.DB
+type defaultMilestoneService struct {
+	defaultMilestoneTask
 }
 
-func NewGroupLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) NextGroupLogic {
-	return NextGroupLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		dbCtx:  svcCtx.WithDatabaseContext(ctx),
+func NewDefaultMilestoneService(stx *svcCtx.ServiceContext, milestoneRepo domain.MilestoneRepo) idl.MilestoneService {
+	return &defaultMilestoneService{
+		defaultMilestoneTask: defaultMilestoneTask{
+			svcCtx:        stx,
+			milestoneRepo: milestoneRepo,
+		},
 	}
 }
 
-func (ng *NextGroupLogic) NextGroup(req types.NextGroupReq) (*types.PaginationList, error) {
+func (ms *defaultMilestoneService) NextGroup(ctx context.Context, req idl.NextGroupReq) (*idl.PaginationList, error) {
 	var (
 		timestamp uint
 		list      []*domain.Milestone
@@ -40,14 +36,14 @@ func (ng *NextGroupLogic) NextGroup(req types.NextGroupReq) (*types.PaginationLi
 		timestamp = req.NextKey
 	}
 
-	if _list := milestoneTask.FindCacheAllByTimestampDesc(req.NextKey, req.Size); _list != nil {
-		return &types.PaginationList{
-			List:    toReply(_list),
+	if _list := ms.findAllFromCacheByTimestampDesc(req.NextKey, req.Size); _list != nil {
+		return &idl.PaginationList{
+			List:    fmtToReply(_list),
 			NextKey: _list[len(_list)-1].Timestamp,
 		}, nil
 	}
 
-	if list, err = repository.NewMilestoneRepo(ng.dbCtx).FindAllByTimestamp(timestamp, req.Size+uint(1), "DESC"); err != nil {
+	if list, err = ms.milestoneRepo.FindAllByTimestamp(timestamp, req.Size+uint(1), "DESC"); err != nil {
 		return nil, err
 	}
 
@@ -56,18 +52,45 @@ func (ng *NextGroupLogic) NextGroup(req types.NextGroupReq) (*types.PaginationLi
 		list = list[0 : len(list)-1]
 	}
 
-	resp := &types.PaginationList{
-		List:    toReply(list),
+	resp := &idl.PaginationList{
+		List:    fmtToReply(list),
 		NextKey: nextKey,
 	}
 
 	return resp, nil
 }
 
-func toReply(list []*domain.Milestone) []*types.NextGroupReply {
-	_list := make([]*types.NextGroupReply, 0, len(list))
+func (ms *defaultMilestoneService) findAllFromCacheByTimestampDesc(startTimestamp, limit uint) []*domain.Milestone {
+	cacheMilestones := ms.milestoneRepo.GetCache()
+	if k := getMilestonesIndexByStartTimestamp(cacheMilestones, startTimestamp); k < 0 {
+		return nil
+	} else if (len(cacheMilestones) - k) < int(limit) {
+		return nil
+	} else {
+		_list := make([]*domain.Milestone, 0, limit)
+		for _, milestone := range cacheMilestones[k:(k + int(limit))] {
+			_m := *milestone
+			_list = append(_list, &_m)
+		}
+		return _list
+	}
+}
+
+func getMilestonesIndexByStartTimestamp(milestones []*domain.Milestone, startTimestamp uint) int {
+	for i := 0; i < len(milestones); i++ {
+		if milestones[i].Timestamp < startTimestamp {
+			return i
+		} else if milestones[i].Timestamp > startTimestamp {
+			return -1
+		}
+	}
+	return -1
+}
+
+func fmtToReply(list []*domain.Milestone) []*idl.NextGroupReply {
+	_list := make([]*idl.NextGroupReply, 0, len(list))
 	for _, m := range list {
-		_list = append(_list, &types.NextGroupReply{
+		_list = append(_list, &idl.NextGroupReply{
 			Title:     m.Title,
 			Subtitled: m.Subtitled,
 			Type:      m.Type,

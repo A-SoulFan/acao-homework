@@ -3,23 +3,23 @@ package handler
 import (
 	"net/http"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	milestoneSvc "github.com/A-SoulFan/acao-homework/internal/app/support-api/service/milestone"
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
-func MilestoneNextGroup(svc *svcCtx.ServiceContext) gin.HandlerFunc {
+func (h *defaultSupportAPIhandler) MilestoneServiceNextGroup() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var req types.NextGroupReq
+		var req idl.NextGroupReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, response.NewServerErrorResponse(err))
 			return
 		}
 
-		lg := milestoneSvc.NewGroupLogic(ctx, svc)
-		if resp, err := lg.NextGroup(req); err != nil {
+		db := h.stx.WithDatabaseContext(ctx)
+		h.milestoneService.SetDB(db)
+
+		if resp, err := h.milestoneService.NextGroup(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.NewServerErrorResponse(err))
 			return
 		} else {
