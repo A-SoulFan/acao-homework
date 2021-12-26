@@ -3,18 +3,17 @@ package handler
 import (
 	"net/http"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	keyvalSvc "github.com/A-SoulFan/acao-homework/internal/app/support-api/service/keyval"
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/response"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllHandler(svc *svcCtx.ServiceContext) gin.HandlerFunc {
+func (h *defaultSupportAPIhandler) MemberServiceGetAllMembers() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		lg := keyvalSvc.NewMemberLogic(ctx, svc)
-		if resp, err := lg.GetAll(); err != nil {
+		h.memberService.SetDBwithCtx(ctx)
+
+		if resp, err := h.memberService.GetAllMembers(); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {
@@ -23,16 +22,17 @@ func GetAllHandler(svc *svcCtx.ServiceContext) gin.HandlerFunc {
 	}
 }
 
-func GetExperienceListHandler(svc *svcCtx.ServiceContext) gin.HandlerFunc {
+func (h *defaultSupportAPIhandler) MemberServiceGetMemberExperience() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var req types.MemberExperienceReq
+		var req idl.MemberExperienceReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, response.NewServerErrorResponse(err))
 			return
 		}
 
-		lg := keyvalSvc.NewMemberLogic(ctx, svc)
-		if resp, err := lg.GetExperience(req); err != nil {
+		h.memberService.SetDBwithCtx(ctx)
+
+		if resp, err := h.memberService.GetMemberExperience(req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {
@@ -41,16 +41,17 @@ func GetExperienceListHandler(svc *svcCtx.ServiceContext) gin.HandlerFunc {
 	}
 }
 
-func GetVideoListHandler(svc *svcCtx.ServiceContext) gin.HandlerFunc {
+func (h *defaultSupportAPIhandler) MemberServiceGetMemberVideos() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var req types.MemberVideoReq
+		var req idl.MemberVideoReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, response.NewServerErrorResponse(err))
 			return
 		}
 
-		lg := keyvalSvc.NewMemberLogic(ctx, svc)
-		if resp, err := lg.GetVideos(req); err != nil {
+		h.memberService.SetDBwithCtx(ctx)
+
+		if resp, err := h.memberService.GetMemberVideos(req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {

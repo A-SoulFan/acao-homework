@@ -1,9 +1,7 @@
 package idl
 
-import (
-	"gorm.io/gorm"
-)
+import "context"
 
 type defaultDB interface {
-	SetDB(db *gorm.DB)
+	SetDBwithCtx(ctx context.Context)
 }

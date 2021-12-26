@@ -2,47 +2,50 @@ package banner
 
 import (
 	"context"
-	"github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
 	"strings"
 
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
-	"github.com/A-SoulFan/acao-homework/internal/repository"
+	"github.com/A-SoulFan/acao-homework/internal/domain"
+	"github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
+
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	"gorm.io/gorm"
 )
 
 const (
 	allowedTypes = "homepage"
 )
 
-type BannerLogic struct {
-	ctx    context.Context
-	svcCtx *svcCtx.ServiceContext
-	dbCtx  *gorm.DB
+type defaultBannerService struct {
+	svcCtx     *svcCtx.ServiceContext
+	bannerRepo domain.BannerRepo
 }
 
-func NewBannerListLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) BannerLogic {
-	return BannerLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		dbCtx:  svcCtx.WithDatabaseContext(ctx),
+func NewDefaultBannerService(svcCtx *svcCtx.ServiceContext, bannerRepo domain.BannerRepo) idl.BannerService {
+	return &defaultBannerService{
+		svcCtx:     svcCtx,
+		bannerRepo: bannerRepo,
 	}
 }
 
-func (b *BannerLogic) GetList(req types.BannerListReq) (*types.BannerListReply, error) {
+func (bs *defaultBannerService) SetDBwithCtx(ctx context.Context) {
+	db := bs.svcCtx.WithDatabaseContext(ctx)
+	bs.bannerRepo.SetDB(db)
+}
+
+func (bs *defaultBannerService) GetBannerList(req idl.BannerListReq) (*idl.BannerListReply, error) {
 	if !checkType(req.Type) {
 		return nil, apperrors.NewValidateError("无效的类型")
 	}
 
-	list, err := repository.NewDefaultBannerRepo(b.dbCtx).FindAllByType(req.Type)
+	list, err := bs.bannerRepo.FindAllByType(req.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := &types.BannerListReply{TotalCount: len(list), PictureList: make([]types.BannerPicture, 0, len(list))}
+	resp := &idl.BannerListReply{TotalCount: len(list), PictureList: make([]idl.BannerPicture, 0, len(list))}
 	for _, banner := range list {
-		resp.PictureList = append(resp.PictureList, types.BannerPicture{
+		resp.PictureList = append(resp.PictureList, idl.BannerPicture{
 			PictureUrl:      banner.Url,
 			PictureDescribe: banner.Desc,
 			Title:           banner.Title,

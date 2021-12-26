@@ -5,9 +5,13 @@ import (
 )
 
 var (
-	MilestoneCache *types.MilestoneCache
+	MilestoneCache      *types.MilestoneCache
+	StrollCache         *types.StrollCache
+	RecommendSliceCache *types.RecommendSliceCache
 )
 
 func launchCaches() {
 	MilestoneCache = types.NewMilestoneCache()
+	StrollCache = types.NewStrollCache()
+	RecommendSliceCache = types.NewRecommendSliceCache()
 }

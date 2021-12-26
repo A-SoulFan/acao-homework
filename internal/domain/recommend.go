@@ -1,5 +1,11 @@
 package domain
 
+type RecommendRepo interface {
+	// cache
+	SetCache([]*RecommendVideo)
+	GetCache() []*RecommendVideo
+}
+
 type RecommendVideo struct {
 	Bid        string `json:"bid"`         // BV 号
 	Title      string `json:"title"`       // 标题

@@ -1,12 +1,12 @@
 package milestone
 
 import (
+	"context"
 	"log"
 	"time"
 
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
-	"gorm.io/gorm"
 )
 
 const (
@@ -18,7 +18,8 @@ type defaultMilestoneTask struct {
 	milestoneRepo domain.MilestoneRepo
 }
 
-func (mt *defaultMilestoneTask) SetDB(db *gorm.DB) {
+func (mt *defaultMilestoneTask) SetDBwithCtx(ctx context.Context) {
+	db := mt.svcCtx.WithDatabaseContext(ctx)
 	mt.milestoneRepo.SetDB(db)
 }
 

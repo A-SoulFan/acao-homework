@@ -4,15 +4,23 @@ import (
 	"time"
 
 	"github.com/A-SoulFan/acao-homework/internal/domain"
-	"gorm.io/gorm"
+	"github.com/A-SoulFan/acao-homework/internal/launch"
 )
 
-type defaultStrollRepo struct {
-	conn *gorm.DB
+func (m *defaultStrollRepo) SetCache(strolls []*domain.Stroll) {
+	launch.StrollCache.Set(strolls)
 }
 
-func NewStrollRepo(conn *gorm.DB) domain.StrollRepo {
-	return &defaultStrollRepo{conn: conn}
+func (m *defaultStrollRepo) GetCache() []*domain.Stroll {
+	return launch.StrollCache.Get()
+}
+
+type defaultStrollRepo struct {
+	defaultRepo
+}
+
+func NewStrollRepo() domain.StrollRepo {
+	return &defaultStrollRepo{}
 }
 
 func (m *defaultStrollRepo) Insert(data *domain.Stroll) error {

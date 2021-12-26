@@ -8,6 +8,6 @@ type defaultRepo struct {
 	conn *gorm.DB
 }
 
-func (m *defaultMilestoneRepo) SetDB(db *gorm.DB) {
+func (m *defaultRepo) SetDB(db *gorm.DB) {
 	m.conn = db
 }

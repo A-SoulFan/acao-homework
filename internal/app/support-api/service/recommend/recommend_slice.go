@@ -1,22 +1,40 @@
 package recommend
 
 import (
-	"context"
-
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	recommendTask "github.com/A-SoulFan/acao-homework/internal/app/support-api/task/recommend"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 )
 
-type RecommendSliceLogic struct {
-	ctx    context.Context
-	svcCtx *svcCtx.ServiceContext
+type defaultRecommendService struct {
+	defaultRecommendTask
 }
 
-func NewRecommendSliceLogic(svc *svcCtx.ServiceContext) *RecommendSliceLogic {
-	return &RecommendSliceLogic{svcCtx: svc}
+func NewDefaultRecommendService(stx *svcCtx.ServiceContext, recommendRepo domain.RecommendRepo) idl.RecommendService {
+	return &defaultRecommendService{
+		defaultRecommendTask: defaultRecommendTask{
+			svcCtx:        stx,
+			recommendRepo: recommendRepo,
+		},
+	}
 }
 
-func (rm *RecommendSliceLogic) Handle() ([]domain.RecommendVideo, error) {
-	return recommendTask.Hot(20), nil
+func (rs *defaultRecommendService) TopRecommendSlices() ([]*domain.RecommendVideo, error) {
+	return rs.top(20), nil
+}
+
+func (rs *defaultRecommendService) top(n int) []*domain.RecommendVideo {
+	videoList := make([]*domain.RecommendVideo, 0, n)
+
+	cache := rs.recommendRepo.GetCache()
+
+	for i, video := range cache {
+		if i == n {
+			break
+		}
+
+		videoList = append(videoList, video)
+	}
+
+	return videoList
 }

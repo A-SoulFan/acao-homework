@@ -2,15 +2,13 @@ package logic
 
 import (
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
+	"github.com/A-SoulFan/acao-homework/internal/domain"
 	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
-	"github.com/A-SoulFan/acao-homework/internal/repository"
 
 	"context"
 	"encoding/json"
 	"fmt"
-
-	"gorm.io/gorm"
 )
 
 const (
@@ -18,22 +16,25 @@ const (
 	teamEventsPrefix = "team_events_"
 )
 
-type TeamLogic struct {
-	ctx    context.Context
-	svcCtx *svcCtx.ServiceContext
-	dbCtx  *gorm.DB
+type defaultTeamService struct {
+	svcCtx   *svcCtx.ServiceContext
+	teamRepo domain.KeyValueRepo
 }
 
-func NewTeamLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) TeamLogic {
-	return TeamLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		dbCtx:  svcCtx.WithDatabaseContext(ctx),
+func NewDefaultTeamService(svcCtx *svcCtx.ServiceContext, teamRepo domain.KeyValueRepo) idl.TeamService {
+	return &defaultTeamService{
+		svcCtx:   svcCtx,
+		teamRepo: teamRepo,
 	}
 }
 
-func (t *TeamLogic) GetVideos(req types.TeamVideosReq) (*types.TeamVideosResp, error) {
-	val, err := repository.NewDefaultKeyValueRepo(t.dbCtx).FindOneByKey(teamVideos)
+func (ts *defaultTeamService) SetDBwithCtx(ctx context.Context) {
+	db := ts.svcCtx.WithDatabaseContext(ctx)
+	ts.teamRepo.SetDB(db)
+}
+
+func (ts *defaultTeamService) GetTeamVideos(req idl.TeamVideosReq) (*idl.TeamVideosResp, error) {
+	val, err := ts.teamRepo.FindOneByKey(teamVideos)
 	if err != nil {
 		return nil, err
 	}
@@ -47,16 +48,16 @@ func (t *TeamLogic) GetVideos(req types.TeamVideosReq) (*types.TeamVideosResp, e
 		return nil, err
 	}
 
-	return &types.TeamVideosResp{
+	return &idl.TeamVideosResp{
 		TotalCount: len(list),
 		TotalPage:  1,
 		VideoList:  list,
 	}, nil
 }
 
-func (t *TeamLogic) GetEvents(req types.TeamEventsReq) (*types.TeamEventsResp, error) {
+func (ts *defaultTeamService) GetTeamEvents(req idl.TeamEventsReq) (*idl.TeamEventsResp, error) {
 	queryKey := fmt.Sprintf("%s%s", teamEventsPrefix, req.Year)
-	val, err := repository.NewDefaultKeyValueRepo(t.dbCtx).FindOneByKey(queryKey)
+	val, err := ts.teamRepo.FindOneByKey(queryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (t *TeamLogic) GetEvents(req types.TeamEventsReq) (*types.TeamEventsResp, e
 		return nil, err
 	}
 
-	return &types.TeamEventsResp{
+	return &idl.TeamEventsResp{
 		TotalCount: len(list),
 		TotalPage:  1,
 		EventList:  list,
