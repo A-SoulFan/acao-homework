@@ -1,6 +1,8 @@
 package domain
 
 type StrollRepo interface {
+	defaultRepo
+	// mysql gorm
 	Insert(data *Stroll) error
 	Delete(primaryKey uint) error
 	Update(data *Stroll) error
@@ -9,6 +11,10 @@ type StrollRepo interface {
 	FindAllByIds(primaryKeyList []uint) ([]*Stroll, error)
 	FindMaxId() (uint, error)
 	FindLastUpdateTime() (uint, error)
+
+	// cache
+	SetCache([]*Stroll)
+	GetCache() []*Stroll
 }
 
 type Stroll struct {

@@ -1,4 +1,4 @@
-package logic
+package member
 
 import (
 	"context"
@@ -7,11 +7,9 @@ import (
 	"strings"
 
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
+	"github.com/A-SoulFan/acao-homework/internal/domain"
 	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
-	"github.com/A-SoulFan/acao-homework/internal/repository"
-
-	"gorm.io/gorm"
 )
 
 const (
@@ -20,22 +18,25 @@ const (
 	memberVideoPrefix      = "member_videos_"
 )
 
-type MemberLogic struct {
-	ctx    context.Context
-	svcCtx *svcCtx.ServiceContext
-	dbCtx  *gorm.DB
+type defaultMemberService struct {
+	svcCtx     *svcCtx.ServiceContext
+	memberRepo domain.KeyValueRepo
 }
 
-func NewMemberLogic(ctx context.Context, svcCtx *svcCtx.ServiceContext) MemberLogic {
-	return MemberLogic{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		dbCtx:  svcCtx.WithDatabaseContext(ctx),
+func NewDefaultMemberService(svcCtx *svcCtx.ServiceContext, memberRepo domain.KeyValueRepo) idl.MemberService {
+	return &defaultMemberService{
+		svcCtx:     svcCtx,
+		memberRepo: memberRepo,
 	}
 }
 
-func (m *MemberLogic) GetAll() (*types.MemberAll, error) {
-	val, err := repository.NewDefaultKeyValueRepo(m.dbCtx).FindOneByKey(memberListKey)
+func (ms *defaultMemberService) SetDBwithCtx(ctx context.Context) {
+	db := ms.svcCtx.WithDatabaseContext(ctx)
+	ms.memberRepo.SetDB(db)
+}
+
+func (ms *defaultMemberService) GetAllMembers() (*idl.MemberAll, error) {
+	val, err := ms.memberRepo.FindOneByKey(memberListKey)
 	if err != nil {
 		return nil, err
 	}
@@ -49,13 +50,13 @@ func (m *MemberLogic) GetAll() (*types.MemberAll, error) {
 		return nil, err
 	}
 
-	return &types.MemberAll{MemberList: list}, nil
+	return &idl.MemberAll{MemberList: list}, nil
 }
 
-func (m *MemberLogic) GetExperience(req types.MemberExperienceReq) (*types.MemberExperienceResp, error) {
+func (ms *defaultMemberService) GetMemberExperience(req idl.MemberExperienceReq) (*idl.MemberExperienceResp, error) {
 	queryKey := fmt.Sprintf("%s%s", memberExperiencePrefix, strings.ToLower(req.MemberName))
 
-	val, err := repository.NewDefaultKeyValueRepo(m.dbCtx).FindOneByKey(queryKey)
+	val, err := ms.memberRepo.FindOneByKey(queryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +70,7 @@ func (m *MemberLogic) GetExperience(req types.MemberExperienceReq) (*types.Membe
 		return nil, err
 	}
 
-	return &types.MemberExperienceResp{
+	return &idl.MemberExperienceResp{
 		MemberName: req.MemberName,
 		TotalCount: len(list),
 		TotalPage:  1,
@@ -77,10 +78,10 @@ func (m *MemberLogic) GetExperience(req types.MemberExperienceReq) (*types.Membe
 	}, nil
 }
 
-func (m *MemberLogic) GetVideos(req types.MemberVideoReq) (*types.MemberExperienceResp, error) {
+func (ms *defaultMemberService) GetMemberVideos(req idl.MemberVideoReq) (*idl.MemberExperienceResp, error) {
 	queryKey := fmt.Sprintf("%s%s", memberVideoPrefix, strings.ToLower(req.MemberName))
 
-	val, err := repository.NewDefaultKeyValueRepo(m.dbCtx).FindOneByKey(queryKey)
+	val, err := ms.memberRepo.FindOneByKey(queryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +95,7 @@ func (m *MemberLogic) GetVideos(req types.MemberVideoReq) (*types.MemberExperien
 		return nil, err
 	}
 
-	return &types.MemberExperienceResp{
+	return &idl.MemberExperienceResp{
 		MemberName: req.MemberName,
 		TotalCount: len(list),
 		TotalPage:  1,

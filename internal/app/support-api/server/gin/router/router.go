@@ -19,8 +19,8 @@ func InitRouter(svc *svcCtx.ServiceContext, logger *zap.Logger) http.InitRouters
 		r.Use(middleware.Cors())
 
 		// 随机溜
-		r.GET("/api/stroll/random", handler.RandomStrollHandler(svc))
-		r.GET("/api/stroll/last-update-time", handler.LastUpdateTimeHandler(svc))
+		r.GET("/api/stroll/random", defaultHandler.StrollServiceRandomStroll())
+		r.GET("/api/stroll/last-update-time", defaultHandler.StrollServiceLastUpdateTime())
 
 		// 大事件
 		r.GET("/api/milestone/next-group", defaultHandler.MilestoneServiceNextGroup())
@@ -29,20 +29,20 @@ func InitRouter(svc *svcCtx.ServiceContext, logger *zap.Logger) http.InitRouters
 		// 注意 response request 风格均不相同
 
 		// 推荐切片
-		r.GET("/api/recommend-slice", handler.RecommendHandler(svc))
+		r.GET("/api/recommend-slice", defaultHandler.RecommendServiceTopRecommendSlices())
 
 		// 头部图片
-		r.GET("/asf/mobile/headpicture", handler.GetBannerListHandler(svc))
+		r.GET("/asf/mobile/headpicture", defaultHandler.BannerServiceGetBannerList())
 
 		// 团队成员
-		r.GET("/asf/mobile/member/all", handler.GetAllHandler(svc))
+		r.GET("/asf/mobile/member/all", defaultHandler.MemberServiceGetAllMembers())
 		// 团队个人经历
-		r.GET("/asf/mobile/member/experience", handler.GetExperienceListHandler(svc))
+		r.GET("/asf/mobile/member/experience", defaultHandler.MemberServiceGetMemberExperience())
 		// 个人作品
-		r.GET("/asf/mobile/member/videos", handler.GetVideoListHandler(svc))
+		r.GET("/asf/mobile/member/videos", defaultHandler.MemberServiceGetMemberVideos())
 		// 团队作品
-		r.GET("/asf/mobile/team/videos", handler.GetTeamVideoListHandler(svc))
+		r.GET("/asf/mobile/team/videos", defaultHandler.TeamServiceGetTeamVideos())
 		// 团队事件
-		r.GET("/asf/mobile/team/events", handler.GetTeamEventListHandler(svc))
+		r.GET("/asf/mobile/team/events", defaultHandler.TeamServiceGetTeamEvents())
 	}
 }

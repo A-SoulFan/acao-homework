@@ -3,25 +3,22 @@ package handler
 import (
 	"net/http"
 
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/types"
-
-	bannerSvc "github.com/A-SoulFan/acao-homework/internal/app/support-api/service/banner"
-
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 
 	"github.com/gin-gonic/gin"
 )
 
-func GetBannerListHandler(svc *svcCtx.ServiceContext) gin.HandlerFunc {
+func (h *defaultSupportAPIhandler) BannerServiceGetBannerList() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var req types.BannerListReq
+		var req idl.BannerListReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, ErrorResponse(err))
 			return
 		}
 
-		lg := bannerSvc.NewBannerListLogic(ctx, svc)
-		if resp, err := lg.GetList(req); err != nil {
+		h.memberService.SetDBwithCtx(ctx)
+
+		if resp, err := h.bannerService.GetBannerList(req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {

@@ -16,8 +16,7 @@ func (h *defaultSupportAPIhandler) MilestoneServiceNextGroup() gin.HandlerFunc {
 			return
 		}
 
-		db := h.stx.WithDatabaseContext(ctx)
-		h.milestoneService.SetDB(db)
+		h.milestoneService.SetDBwithCtx(ctx)
 
 		if resp, err := h.milestoneService.NextGroup(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.NewServerErrorResponse(err))

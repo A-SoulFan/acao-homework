@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
@@ -19,49 +18,55 @@ const (
 	tempSaveFile = "temp/recommend_slice.csv"
 )
 
-type taskGetRecommendSlice struct {
-	recommendSlice []domain.RecommendVideo
+type defaultRecommendTask struct {
+	svcCtx        *svcCtx.ServiceContext
+	recommendRepo domain.RecommendRepo
 }
 
-var (
-	once sync.Once
-	_tr  *taskGetRecommendSlice
-)
+func (rt *defaultRecommendTask) InitTask() {
+	rt.setRecommendSliceCache()
 
-func Hot(l int) []domain.RecommendVideo {
-	temp := make([]domain.RecommendVideo, 0, l)
-	for i, video := range _tr.recommendSlice {
-		if i == l {
-			break
+	rt.startTick()
+}
+
+func (rt *defaultRecommendTask) setRecommendSliceCache() {
+	// 推荐切片写入 csv 文件
+	rt.saveRecommend2CsvFile()
+
+	// 从 csv 文件获取切片排好序并缓存至本地
+	rt.cacheRecommend2Local()
+}
+
+func (rt *defaultRecommendTask) startTick() {
+	tk := time.NewTicker(15 * time.Minute)
+
+	stopChan := make(chan bool)
+	go func(ticker *time.Ticker) {
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				rt.setRecommendSliceCache()
+
+			case stop := <-stopChan:
+				if stop {
+					return
+				}
+			}
 		}
-
-		temp = append(temp, video)
-	}
-
-	return temp
+	}(tk)
 }
 
-func Register(svc *svcCtx.ServiceContext) {
-	once.Do(func() {
-		_tr = &taskGetRecommendSlice{recommendSlice: []domain.RecommendVideo{}}
-
-		_tr.init()
-	})
-}
-
-func (tr *taskGetRecommendSlice) init() {
-	tr.rearrange()
-	ticker(tr)
-}
-
-func (tr *taskGetRecommendSlice) rearrange() {
+// 从 csv 文件获取切片
+func (rt *defaultRecommendTask) getRecommendSliceFromCsvFile() []*domain.RecommendVideo {
 	if _, err := os.Stat(tempSaveFile); err != nil {
-		return
+		return nil
 	}
 
 	f, err := os.Open(tempSaveFile)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	defer f.Close()
 
@@ -69,33 +74,43 @@ func (tr *taskGetRecommendSlice) rearrange() {
 	cAll, err := cR.ReadAll()
 
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
-	temp := make([]domain.RecommendVideo, 0, len(cAll))
+	recommendSlice := make([]*domain.RecommendVideo, 0, len(cAll))
 	for _, strings := range cAll {
-		temp = append(temp, buildVideo(strings))
+		recommendSlice = append(recommendSlice, rt.buildVideo(strings))
 	}
 
-	tr.recommendSlice = temp
+	return recommendSlice
+}
 
-	sort.SliceStable(tr.recommendSlice, func(i, j int) bool {
-		iP, err := strconv.Atoi(tr.recommendSlice[i].PlayVal)
+// 从 csv 文件获取切片排好序并缓存至本地
+func (rt *defaultRecommendTask) cacheRecommend2Local() {
+	// 从 csv 文件获取切片
+	recommendSlice := rt.getRecommendSliceFromCsvFile()
+
+	// 按播放量降序
+	sort.SliceStable(recommendSlice, func(i, j int) bool {
+		iP, err := strconv.Atoi(recommendSlice[i].PlayVal)
 		if err != nil {
 			panic(err)
 		}
 
-		jP, err := strconv.Atoi(tr.recommendSlice[j].PlayVal)
+		jP, err := strconv.Atoi(recommendSlice[j].PlayVal)
 		if err != nil {
 			panic(err)
 		}
 
 		return iP > jP
 	})
+
+	// 缓存
+	rt.recommendRepo.SetCache(recommendSlice)
 }
 
-func buildVideo(csvLen []string) domain.RecommendVideo {
-	video := domain.RecommendVideo{}
+func (rt *defaultRecommendTask) buildVideo(csvLen []string) *domain.RecommendVideo {
+	video := &domain.RecommendVideo{}
 
 	for i, s := range csvLen {
 		switch i {
@@ -124,31 +139,8 @@ func buildVideo(csvLen []string) domain.RecommendVideo {
 	return video
 }
 
-func ticker(tr *taskGetRecommendSlice) {
-	tk := time.NewTicker(15 * time.Minute)
-
-	stopChan := make(chan bool)
-	go func(ticker *time.Ticker) {
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ticker.C:
-				if err := search(); err != nil {
-					fmt.Println(err)
-					continue
-				}
-				tr.rearrange()
-			case stop := <-stopChan:
-				if stop {
-					return
-				}
-			}
-		}
-	}(tk)
-}
-
-func search() error {
+// 查询B站推荐切片写入 csv 文件
+func (rt *defaultRecommendTask) saveRecommend2CsvFile() error {
 	var hitMap = map[string]int{}
 	var mids = []string{
 		"393396916", // 贾布
