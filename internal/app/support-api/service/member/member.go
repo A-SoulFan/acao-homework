@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
@@ -19,23 +18,14 @@ const (
 )
 
 type defaultMemberService struct {
-	svcCtx     *svcCtx.ServiceContext
 	memberRepo domain.KeyValueRepo
 }
 
-func NewDefaultMemberService(svcCtx *svcCtx.ServiceContext, memberRepo domain.KeyValueRepo) idl.MemberService {
-	return &defaultMemberService{
-		svcCtx:     svcCtx,
-		memberRepo: memberRepo,
-	}
+func NewDefaultMemberService() idl.MemberService {
+	return &defaultMemberService{}
 }
 
-func (ms *defaultMemberService) SetDBwithCtx(ctx context.Context) {
-	db := ms.svcCtx.WithDatabaseContext(ctx)
-	ms.memberRepo.SetDB(db)
-}
-
-func (ms *defaultMemberService) GetAllMembers() (*idl.MemberAll, error) {
+func (ms *defaultMemberService) GetAllMembers(ctx context.Context) (*idl.MemberAll, error) {
 	val, err := ms.memberRepo.FindOneByKey(memberListKey)
 	if err != nil {
 		return nil, err
@@ -53,7 +43,7 @@ func (ms *defaultMemberService) GetAllMembers() (*idl.MemberAll, error) {
 	return &idl.MemberAll{MemberList: list}, nil
 }
 
-func (ms *defaultMemberService) GetMemberExperience(req idl.MemberExperienceReq) (*idl.MemberExperienceResp, error) {
+func (ms *defaultMemberService) GetMemberExperience(ctx context.Context, req idl.MemberExperienceReq) (*idl.MemberExperienceResp, error) {
 	queryKey := fmt.Sprintf("%s%s", memberExperiencePrefix, strings.ToLower(req.MemberName))
 
 	val, err := ms.memberRepo.FindOneByKey(queryKey)
@@ -78,7 +68,7 @@ func (ms *defaultMemberService) GetMemberExperience(req idl.MemberExperienceReq)
 	}, nil
 }
 
-func (ms *defaultMemberService) GetMemberVideos(req idl.MemberVideoReq) (*idl.MemberExperienceResp, error) {
+func (ms *defaultMemberService) GetMemberVideos(ctx context.Context, req idl.MemberVideoReq) (*idl.MemberExperienceResp, error) {
 	queryKey := fmt.Sprintf("%s%s", memberVideoPrefix, strings.ToLower(req.MemberName))
 
 	val, err := ms.memberRepo.FindOneByKey(queryKey)

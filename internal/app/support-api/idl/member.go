@@ -1,10 +1,11 @@
 package idl
 
+import "context"
+
 type MemberService interface {
-	defaultDB
-	GetAllMembers() (*MemberAll, error)
-	GetMemberExperience(req MemberExperienceReq) (*MemberExperienceResp, error)
-	GetMemberVideos(req MemberVideoReq) (*MemberExperienceResp, error)
+	GetAllMembers(ctx context.Context) (*MemberAll, error)
+	GetMemberExperience(ctx context.Context, req MemberExperienceReq) (*MemberExperienceResp, error)
+	GetMemberVideos(ctx context.Context, req MemberVideoReq) (*MemberExperienceResp, error)
 }
 
 type MemberAll struct {

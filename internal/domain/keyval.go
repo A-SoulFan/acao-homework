@@ -1,7 +1,6 @@
 package domain
 
 type KeyValueRepo interface {
-	defaultRepo
 	FindAllByKey(key string) ([]*KeyValue, error)
 	FindOneByKey(key string) (*KeyValue, error)
 }

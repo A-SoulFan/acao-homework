@@ -1,9 +1,10 @@
 package idl
 
+import "context"
+
 type TeamService interface {
-	defaultDB
-	GetTeamVideos(req TeamVideosReq) (*TeamVideosResp, error)
-	GetTeamEvents(req TeamEventsReq) (*TeamEventsResp, error)
+	GetTeamVideos(ctx context.Context, req TeamVideosReq) (*TeamVideosResp, error)
+	GetTeamEvents(ctx context.Context, req TeamEventsReq) (*TeamEventsResp, error)
 }
 
 type TeamVideosReq struct {

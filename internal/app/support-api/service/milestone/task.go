@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 )
 
@@ -14,16 +13,10 @@ const (
 )
 
 type defaultMilestoneTask struct {
-	svcCtx        *svcCtx.ServiceContext
 	milestoneRepo domain.MilestoneRepo
 }
 
-func (mt *defaultMilestoneTask) SetDBwithCtx(ctx context.Context) {
-	db := mt.svcCtx.WithDatabaseContext(ctx)
-	mt.milestoneRepo.SetDB(db)
-}
-
-func (mt *defaultMilestoneTask) InitTask() {
+func (mt *defaultMilestoneTask) InitTask(ctx context.Context) {
 	if err := mt.rebuildCache(); err != nil {
 		panic(err)
 	}

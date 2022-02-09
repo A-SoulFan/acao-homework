@@ -3,13 +3,14 @@ package middleware
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"net/http"
-	"strings"
 )
 
 type ErrorInterceptor struct {

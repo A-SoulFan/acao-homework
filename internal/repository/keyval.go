@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/A-SoulFan/acao-homework/internal/domain"
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,11 +10,11 @@ const (
 )
 
 type defaultKeyValueRepo struct {
-	defaultRepo
+	conn *gorm.DB
 }
 
-func NewKeyValueRepo() domain.KeyValueRepo {
-	return &defaultKeyValueRepo{}
+func NewKeyValueRepo(conn *gorm.DB) domain.KeyValueRepo {
+	return &defaultKeyValueRepo{conn: conn}
 }
 
 func (m *defaultKeyValueRepo) FindAllByKey(key string) ([]*domain.KeyValue, error) {

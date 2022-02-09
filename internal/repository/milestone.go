@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 	"github.com/A-SoulFan/acao-homework/internal/launch"
 )
@@ -17,11 +19,11 @@ func (m *defaultMilestoneRepo) GetCache() []*domain.Milestone {
 }
 
 type defaultMilestoneRepo struct {
-	defaultRepo
+	conn *gorm.DB
 }
 
-func NewMilestoneRepo() domain.MilestoneRepo {
-	return &defaultMilestoneRepo{}
+func NewMilestoneRepo(conn *gorm.DB) domain.MilestoneRepo {
+	return &defaultMilestoneRepo{conn: conn}
 }
 
 func (m *defaultMilestoneRepo) Insert(data *domain.Milestone) error {

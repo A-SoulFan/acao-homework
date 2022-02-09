@@ -1,6 +1,7 @@
 package recommend
 
 import (
+	"context"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -9,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
+	"github.com/A-SoulFan/acao-homework/internal/pkg/utility/bilibili"
+
 	"github.com/A-SoulFan/acao-homework/internal/domain"
-	"github.com/A-SoulFan/acao-homework/internal/pkg/utility"
 )
 
 const (
@@ -19,11 +20,10 @@ const (
 )
 
 type defaultRecommendTask struct {
-	svcCtx        *svcCtx.ServiceContext
 	recommendRepo domain.RecommendRepo
 }
 
-func (rt *defaultRecommendTask) InitTask() {
+func (rt *defaultRecommendTask) InitTask(ctx context.Context) {
 	rt.setRecommendSliceCache()
 
 	rt.startTick()
@@ -78,8 +78,8 @@ func (rt *defaultRecommendTask) getRecommendSliceFromCsvFile() []*domain.Recomme
 	}
 
 	recommendSlice := make([]*domain.RecommendVideo, 0, len(cAll))
-	for _, strings := range cAll {
-		recommendSlice = append(recommendSlice, rt.buildVideo(strings))
+	for _, s := range cAll {
+		recommendSlice = append(recommendSlice, rt.buildVideo(s))
 	}
 
 	return recommendSlice
@@ -159,11 +159,11 @@ func (rt *defaultRecommendTask) saveRecommend2CsvFile() error {
 	_, _ = cvFile.WriteString("\xEF\xBB\xBF") // UTF-8 BOM
 	cW := csv.NewWriter(cvFile)
 
-	b := &utility.BiliBili{}
+	b := &bilibili.BiliBili{}
 	for _, mid := range mids {
 		var end = false
 		for i := 1; !end; i++ {
-			var res *utility.SpaceSearchResponse
+			var res *bilibili.SpaceSearchResponse
 			var err error
 			for n := 0; n < 3; n++ {
 				time.Sleep(time.Second * time.Duration(n+1))

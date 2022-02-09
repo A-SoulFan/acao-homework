@@ -1,13 +1,14 @@
 package gin
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/A-SoulFan/acao-homework/internal/pkg/transports/http"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 var ProviderSet = wire.NewSet(NewServer)

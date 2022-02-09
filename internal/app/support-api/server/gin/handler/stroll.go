@@ -3,15 +3,25 @@ package handler
 import (
 	"net/http"
 
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
+
 	"github.com/A-SoulFan/acao-homework/internal/pkg/response"
 	"github.com/gin-gonic/gin"
 )
 
-func (h *defaultSupportAPIhandler) StrollServiceRandomStroll() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		h.strollService.SetDBwithCtx(ctx)
+type Stroll struct {
+	strollService idl.StrollService
+}
 
-		if resp, err := h.strollService.RandomGetStroll(); err != nil {
+func NewStrollApi(strollService idl.StrollService) *Stroll {
+	return &Stroll{
+		strollService: strollService,
+	}
+}
+
+func (h *Stroll) StrollServiceRandomStroll() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		if resp, err := h.strollService.RandomGetStroll(ctx); err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.NewServerErrorResponse(err))
 		} else {
 			ctx.JSON(http.StatusOK, response.NewSuccessJsonResponse(resp))
@@ -19,11 +29,10 @@ func (h *defaultSupportAPIhandler) StrollServiceRandomStroll() gin.HandlerFunc {
 	}
 }
 
-func (h *defaultSupportAPIhandler) StrollServiceLastUpdateTime() gin.HandlerFunc {
+func (h *Stroll) StrollServiceLastUpdateTime() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		h.strollService.SetDBwithCtx(ctx)
 
-		if resp, err := h.strollService.LastUpdateTime(); err != nil {
+		if resp, err := h.strollService.LastUpdateTime(ctx); err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.NewServerErrorResponse(err))
 			return
 		} else {

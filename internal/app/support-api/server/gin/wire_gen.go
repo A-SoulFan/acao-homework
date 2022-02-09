@@ -7,8 +7,16 @@
 package gin
 
 import (
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/server/gin/handler"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/server/gin/middleware"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/server/gin/router"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service/banner"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service/member"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service/milestone"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service/recommend"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service/stroll"
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/service/team"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/cache"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/config"
 	"github.com/A-SoulFan/acao-homework/internal/pkg/database"
@@ -36,6 +44,13 @@ func InitServer(configFile string) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
+	errorInterceptor := middleware.NewErrorInterceptor(logger)
+	strollService := stroll.NewDefaultStrollService()
+	handlerStroll := handler.NewStrollApi(strollService)
+	milestoneService := milestone.NewDefaultMilestoneService()
+	handlerMilestone := handler.NewMilestoneApi(milestoneService)
+	recommendService := recommend.NewDefaultRecommendService()
+	handlerRecommend := handler.NewRecommendApi(recommendService)
 	databaseOptions, err := database.NewOptions(viper, logger)
 	if err != nil {
 		return nil, err
@@ -44,13 +59,13 @@ func InitServer(configFile string) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	cacheOptions, err := cache.NewOptions(viper)
-	if err != nil {
-		return nil, err
-	}
-	cacheInterface := cache.NewGoCache(cacheOptions)
-	serviceContext := context.NewServiceContext(logger, db, cacheInterface)
-	initRouters := router.InitRouter(serviceContext, logger)
+	bannerService := banner.NewDefaultBannerService(db)
+	handlerBanner := handler.NewBannerApi(bannerService)
+	memberService := member.NewDefaultMemberService()
+	handlerMember := handler.NewMemberApi(memberService)
+	teamService := team.NewDefaultTeamService(db)
+	handlerTeam := handler.NewTeamApi(teamService)
+	initRouters := router.InitRouter(errorInterceptor, handlerStroll, handlerMilestone, handlerRecommend, handlerBanner, handlerMember, handlerTeam)
 	engine := http.NewRouter(httpOptions, logger, initRouters)
 	server, err := http.NewServer(httpOptions, logger, engine)
 	if err != nil {
@@ -62,4 +77,4 @@ func InitServer(configFile string) (*Server, error) {
 
 // wire.go:
 
-var providerSet = wire.NewSet(config.ProviderSet, http.ProviderSet, log.ProviderSet, database.ProviderSet, cache.ProviderSet, context.ProviderSet, router.InitRouter, ProviderSet)
+var providerSet = wire.NewSet(config.ProviderSet, http.ProviderSet, log.ProviderSet, database.ProviderSet, cache.ProviderSet, middleware.NewErrorInterceptor, handler.ProviderSet, service.ProviderSet, router.InitRouter, ProviderSet)

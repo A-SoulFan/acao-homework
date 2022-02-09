@@ -1,7 +1,8 @@
 package recommend
 
 import (
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
+	"context"
+
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 )
@@ -10,16 +11,13 @@ type defaultRecommendService struct {
 	defaultRecommendTask
 }
 
-func NewDefaultRecommendService(stx *svcCtx.ServiceContext, recommendRepo domain.RecommendRepo) idl.RecommendService {
+func NewDefaultRecommendService() idl.RecommendService {
 	return &defaultRecommendService{
-		defaultRecommendTask: defaultRecommendTask{
-			svcCtx:        stx,
-			recommendRepo: recommendRepo,
-		},
+		defaultRecommendTask: defaultRecommendTask{},
 	}
 }
 
-func (rs *defaultRecommendService) TopRecommendSlices() ([]*domain.RecommendVideo, error) {
+func (rs *defaultRecommendService) TopRecommendSlices(ctx context.Context) ([]*domain.RecommendVideo, error) {
 	return rs.top(20), nil
 }
 

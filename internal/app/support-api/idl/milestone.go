@@ -5,12 +5,10 @@ import (
 )
 
 type MilestoneTask interface {
-	defaultDB
-	InitTask()
+	InitTask(ctx context.Context)
 }
 
 type MilestoneService interface {
-	MilestoneTask
 	NextGroup(ctx context.Context, req NextGroupReq) (*PaginationList, error)
 }
 

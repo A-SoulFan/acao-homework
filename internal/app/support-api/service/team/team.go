@@ -1,12 +1,13 @@
-package logic
+package team
 
 import (
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
-	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
-	"github.com/A-SoulFan/acao-homework/internal/domain"
-	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
-
 	"context"
+
+	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
+	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
+	"github.com/A-SoulFan/acao-homework/internal/repository"
+	"gorm.io/gorm"
+
 	"encoding/json"
 	"fmt"
 )
@@ -17,24 +18,17 @@ const (
 )
 
 type defaultTeamService struct {
-	svcCtx   *svcCtx.ServiceContext
-	teamRepo domain.KeyValueRepo
+	db *gorm.DB
 }
 
-func NewDefaultTeamService(svcCtx *svcCtx.ServiceContext, teamRepo domain.KeyValueRepo) idl.TeamService {
-	return &defaultTeamService{
-		svcCtx:   svcCtx,
-		teamRepo: teamRepo,
-	}
+func NewDefaultTeamService(db *gorm.DB) idl.TeamService {
+	return &defaultTeamService{}
 }
 
-func (ts *defaultTeamService) SetDBwithCtx(ctx context.Context) {
-	db := ts.svcCtx.WithDatabaseContext(ctx)
-	ts.teamRepo.SetDB(db)
-}
+func (ts *defaultTeamService) GetTeamVideos(ctx context.Context, req idl.TeamVideosReq) (*idl.TeamVideosResp, error) {
+	teamRepo := repository.NewKeyValueRepo(ts.db.WithContext(ctx))
 
-func (ts *defaultTeamService) GetTeamVideos(req idl.TeamVideosReq) (*idl.TeamVideosResp, error) {
-	val, err := ts.teamRepo.FindOneByKey(teamVideos)
+	val, err := teamRepo.FindOneByKey(teamVideos)
 	if err != nil {
 		return nil, err
 	}
@@ -55,9 +49,11 @@ func (ts *defaultTeamService) GetTeamVideos(req idl.TeamVideosReq) (*idl.TeamVid
 	}, nil
 }
 
-func (ts *defaultTeamService) GetTeamEvents(req idl.TeamEventsReq) (*idl.TeamEventsResp, error) {
+func (ts *defaultTeamService) GetTeamEvents(ctx context.Context, req idl.TeamEventsReq) (*idl.TeamEventsResp, error) {
+	teamRepo := repository.NewKeyValueRepo(ts.db.WithContext(ctx))
+
 	queryKey := fmt.Sprintf("%s%s", teamEventsPrefix, req.Year)
-	val, err := ts.teamRepo.FindOneByKey(queryKey)
+	val, err := teamRepo.FindOneByKey(queryKey)
 	if err != nil {
 		return nil, err
 	}

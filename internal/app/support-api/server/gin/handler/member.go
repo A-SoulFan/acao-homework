@@ -9,11 +9,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *defaultSupportAPIhandler) MemberServiceGetAllMembers() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		h.memberService.SetDBwithCtx(ctx)
+type Member struct {
+	memberService idl.MemberService
+}
 
-		if resp, err := h.memberService.GetAllMembers(); err != nil {
+func NewMemberApi(memberService idl.MemberService) *Member {
+	return &Member{
+		memberService: memberService,
+	}
+}
+
+func (h *Member) MemberServiceGetAllMembers() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		if resp, err := h.memberService.GetAllMembers(ctx); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {
@@ -22,7 +30,7 @@ func (h *defaultSupportAPIhandler) MemberServiceGetAllMembers() gin.HandlerFunc 
 	}
 }
 
-func (h *defaultSupportAPIhandler) MemberServiceGetMemberExperience() gin.HandlerFunc {
+func (h *Member) MemberServiceGetMemberExperience() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req idl.MemberExperienceReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -30,9 +38,7 @@ func (h *defaultSupportAPIhandler) MemberServiceGetMemberExperience() gin.Handle
 			return
 		}
 
-		h.memberService.SetDBwithCtx(ctx)
-
-		if resp, err := h.memberService.GetMemberExperience(req); err != nil {
+		if resp, err := h.memberService.GetMemberExperience(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {
@@ -41,7 +47,7 @@ func (h *defaultSupportAPIhandler) MemberServiceGetMemberExperience() gin.Handle
 	}
 }
 
-func (h *defaultSupportAPIhandler) MemberServiceGetMemberVideos() gin.HandlerFunc {
+func (h *Member) MemberServiceGetMemberVideos() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req idl.MemberVideoReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -49,9 +55,7 @@ func (h *defaultSupportAPIhandler) MemberServiceGetMemberVideos() gin.HandlerFun
 			return
 		}
 
-		h.memberService.SetDBwithCtx(ctx)
-
-		if resp, err := h.memberService.GetMemberVideos(req); err != nil {
+		if resp, err := h.memberService.GetMemberVideos(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {

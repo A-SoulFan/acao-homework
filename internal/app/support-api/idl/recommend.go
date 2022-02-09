@@ -1,12 +1,16 @@
 package idl
 
-import "github.com/A-SoulFan/acao-homework/internal/domain"
+import (
+	"context"
+
+	"github.com/A-SoulFan/acao-homework/internal/domain"
+)
 
 type RecommendTask interface {
-	InitTask()
+	InitTask(ctx context.Context)
 }
 
 type RecommendService interface {
 	RecommendTask
-	TopRecommendSlices() ([]*domain.RecommendVideo, error)
+	TopRecommendSlices(ctx context.Context) ([]*domain.RecommendVideo, error)
 }

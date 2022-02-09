@@ -1,7 +1,6 @@
 package domain
 
 type BannerRepo interface {
-	defaultRepo
 	FindAllByType(t string) ([]*Banner, error)
 }
 
