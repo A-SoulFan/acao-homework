@@ -1,7 +1,6 @@
 package domain
 
 type StrollRepo interface {
-	defaultRepo
 	// mysql gorm
 	Insert(data *Stroll) error
 	Delete(primaryKey uint) error

@@ -8,15 +8,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *defaultSupportAPIhandler) MilestoneServiceNextGroup() gin.HandlerFunc {
+type Milestone struct {
+	milestoneService idl.MilestoneService
+}
+
+func NewMilestoneApi(milestoneService idl.MilestoneService) *Milestone {
+	return &Milestone{
+		milestoneService: milestoneService,
+	}
+}
+
+func (h *Milestone) MilestoneServiceNextGroup() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req idl.NextGroupReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			ctx.JSON(http.StatusBadRequest, response.NewServerErrorResponse(err))
 			return
 		}
-
-		h.milestoneService.SetDBwithCtx(ctx)
 
 		if resp, err := h.milestoneService.NextGroup(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, response.NewServerErrorResponse(err))

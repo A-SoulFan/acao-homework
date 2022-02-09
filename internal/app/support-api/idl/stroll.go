@@ -1,14 +1,15 @@
 package idl
 
+import "context"
+
 type StrollTask interface {
-	defaultDB
-	InitTask()
+	InitTask(ctx context.Context)
 }
 
 type StrollService interface {
 	StrollTask
-	RandomGetStroll() (*StrollReply, error)
-	LastUpdateTime() (*StrollLastUpdateReply, error)
+	RandomGetStroll(ctx context.Context) (*StrollReply, error)
+	LastUpdateTime(ctx context.Context) (*StrollLastUpdateReply, error)
 }
 
 type StrollReply struct {

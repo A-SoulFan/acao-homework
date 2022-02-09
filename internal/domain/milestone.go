@@ -1,7 +1,6 @@
 package domain
 
 type MilestoneRepo interface {
-	defaultRepo
 	// mysql gorm
 	Insert(data *Milestone) error
 	Delete(primaryKey uint) error

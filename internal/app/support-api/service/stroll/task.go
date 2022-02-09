@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"time"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 )
 
@@ -16,17 +15,11 @@ const (
 )
 
 type defaultStrollTask struct {
-	svcCtx         *svcCtx.ServiceContext
 	strollRepo     domain.StrollRepo
 	lastUpdateTime uint
 }
 
-func (st *defaultStrollTask) SetDBwithCtx(ctx context.Context) {
-	db := st.svcCtx.WithDatabaseContext(ctx)
-	st.strollRepo.SetDB(db)
-}
-
-func (st *defaultStrollTask) InitTask() {
+func (st *defaultStrollTask) InitTask(ctx context.Context) {
 	if err := st.generateCandidateList(); err != nil {
 		panic(err)
 	}

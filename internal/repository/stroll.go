@@ -3,6 +3,8 @@ package repository
 import (
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 	"github.com/A-SoulFan/acao-homework/internal/launch"
 )
@@ -16,11 +18,11 @@ func (m *defaultStrollRepo) GetCache() []*domain.Stroll {
 }
 
 type defaultStrollRepo struct {
-	defaultRepo
+	conn *gorm.DB
 }
 
-func NewStrollRepo() domain.StrollRepo {
-	return &defaultStrollRepo{}
+func NewStrollRepo(conn *gorm.DB) domain.StrollRepo {
+	return &defaultStrollRepo{conn: conn}
 }
 
 func (m *defaultStrollRepo) Insert(data *domain.Stroll) error {

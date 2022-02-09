@@ -4,22 +4,18 @@ import (
 	"context"
 	"time"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
+	"github.com/A-SoulFan/acao-homework/internal/repository"
+	"gorm.io/gorm"
 )
 
 type defaultMilestoneService struct {
-	defaultMilestoneTask
+	db *gorm.DB
 }
 
-func NewDefaultMilestoneService(stx *svcCtx.ServiceContext, milestoneRepo domain.MilestoneRepo) idl.MilestoneService {
-	return &defaultMilestoneService{
-		defaultMilestoneTask: defaultMilestoneTask{
-			svcCtx:        stx,
-			milestoneRepo: milestoneRepo,
-		},
-	}
+func NewDefaultMilestoneService() idl.MilestoneService {
+	return &defaultMilestoneService{}
 }
 
 func (ms *defaultMilestoneService) NextGroup(ctx context.Context, req idl.NextGroupReq) (*idl.PaginationList, error) {
@@ -36,14 +32,16 @@ func (ms *defaultMilestoneService) NextGroup(ctx context.Context, req idl.NextGr
 		timestamp = req.NextKey
 	}
 
-	if _list := ms.findAllFromCacheByTimestampDesc(req.NextKey, req.Size); _list != nil {
+	milestoneRepo := repository.NewMilestoneRepo(ms.db.WithContext(ctx))
+
+	if _list := ms.findAllFromCacheByTimestampDesc(milestoneRepo, req.NextKey, req.Size); _list != nil {
 		return &idl.PaginationList{
 			List:    fmtToReply(_list),
 			NextKey: _list[len(_list)-1].Timestamp,
 		}, nil
 	}
 
-	if list, err = ms.milestoneRepo.FindAllByTimestamp(timestamp, req.Size+uint(1), "DESC"); err != nil {
+	if list, err = milestoneRepo.FindAllByTimestamp(timestamp, req.Size+uint(1), "DESC"); err != nil {
 		return nil, err
 	}
 
@@ -60,8 +58,8 @@ func (ms *defaultMilestoneService) NextGroup(ctx context.Context, req idl.NextGr
 	return resp, nil
 }
 
-func (ms *defaultMilestoneService) findAllFromCacheByTimestampDesc(startTimestamp, limit uint) []*domain.Milestone {
-	cacheMilestones := ms.milestoneRepo.GetCache()
+func (ms *defaultMilestoneService) findAllFromCacheByTimestampDesc(milestoneRepo domain.MilestoneRepo, startTimestamp, limit uint) []*domain.Milestone {
+	cacheMilestones := milestoneRepo.GetCache()
 	if k := getMilestonesIndexByStartTimestamp(cacheMilestones, startTimestamp); k < 0 {
 		return nil
 	} else if (len(cacheMilestones) - k) < int(limit) {

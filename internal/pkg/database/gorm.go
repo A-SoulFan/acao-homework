@@ -1,13 +1,14 @@
 package database
 
 import (
+	"time"
+
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"time"
 )
 
 var ProviderSet = wire.NewSet(NewOptions, NewDatabase)

@@ -8,7 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *defaultSupportAPIhandler) BannerServiceGetBannerList() gin.HandlerFunc {
+type Banner struct {
+	bannerService idl.BannerService
+}
+
+func NewBannerApi(bannerService idl.BannerService) *Banner {
+	return &Banner{
+		bannerService: bannerService,
+	}
+}
+
+func (h *Banner) BannerServiceGetBannerList() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req idl.BannerListReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -16,9 +26,7 @@ func (h *defaultSupportAPIhandler) BannerServiceGetBannerList() gin.HandlerFunc 
 			return
 		}
 
-		h.memberService.SetDBwithCtx(ctx)
-
-		if resp, err := h.bannerService.GetBannerList(req); err != nil {
+		if resp, err := h.bannerService.GetBannerList(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {

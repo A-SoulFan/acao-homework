@@ -1,36 +1,33 @@
 package stroll
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
 
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
 	"github.com/A-SoulFan/acao-homework/internal/domain"
 	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
-	"github.com/A-SoulFan/acao-homework/internal/pkg/utility"
+	"github.com/A-SoulFan/acao-homework/internal/pkg/utility/bilibili"
 )
 
 type defaultStrollService struct {
 	defaultStrollTask
 }
 
-func NewDefaultStrollService(stx *svcCtx.ServiceContext, strollRepo domain.StrollRepo) idl.StrollService {
+func NewDefaultStrollService() idl.StrollService {
 	return &defaultStrollService{
-		defaultStrollTask: defaultStrollTask{
-			svcCtx:     stx,
-			strollRepo: strollRepo,
-		},
+		defaultStrollTask: defaultStrollTask{},
 	}
 }
 
-func (r *defaultStrollService) LastUpdateTime() (*idl.StrollLastUpdateReply, error) {
+func (r *defaultStrollService) LastUpdateTime(ctx context.Context) (*idl.StrollLastUpdateReply, error) {
 	resp := &idl.StrollLastUpdateReply{LastUpdateTime: r.getLastUpdateTime()}
 	return resp, nil
 }
 
-func (r *defaultStrollService) RandomGetStroll() (*idl.StrollReply, error) {
+func (r *defaultStrollService) RandomGetStroll(ctx context.Context) (*idl.StrollReply, error) {
 	if stroll, err := r.randomStroll(); err != nil {
 		// r.svcCtx.Logger.Error(err)
 		return nil, appErr.NewServiceError("暂时没有可以溜的数据哦，请稍后再试。").Wrap(err)
@@ -69,7 +66,7 @@ func (r *defaultStrollService) randomStroll() (domain.Stroll, error) {
 }
 
 func getBliBilCover(stroll *domain.Stroll) error {
-	resp, err := (&utility.BiliBili{}).WebInterfaceView(stroll.BV)
+	resp, err := (&bilibili.BiliBili{}).WebInterfaceView(stroll.BV)
 	if err != nil {
 		return err
 	}

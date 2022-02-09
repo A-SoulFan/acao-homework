@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/A-SoulFan/acao-homework/internal/domain"
+	"gorm.io/gorm"
 )
 
 const (
@@ -9,11 +10,11 @@ const (
 )
 
 type defaultBannerRepo struct {
-	defaultRepo
+	conn *gorm.DB
 }
 
-func NewBannerRepo() domain.BannerRepo {
-	return &defaultBannerRepo{}
+func NewBannerRepo(conn *gorm.DB) domain.BannerRepo {
+	return &defaultBannerRepo{conn: conn}
 }
 
 func (m *defaultBannerRepo) FindAllByType(t string) ([]*domain.Banner, error) {

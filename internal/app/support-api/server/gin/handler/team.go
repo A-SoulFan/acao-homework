@@ -8,7 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *defaultSupportAPIhandler) TeamServiceGetTeamVideos() gin.HandlerFunc {
+type Team struct {
+	teamService idl.TeamService
+}
+
+func NewTeamApi(teamService idl.TeamService) *Team {
+	return &Team{
+		teamService: teamService,
+	}
+}
+
+func (h *Team) TeamServiceGetTeamVideos() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req idl.TeamVideosReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -16,9 +26,7 @@ func (h *defaultSupportAPIhandler) TeamServiceGetTeamVideos() gin.HandlerFunc {
 			return
 		}
 
-		h.teamService.SetDBwithCtx(ctx)
-
-		if resp, err := h.teamService.GetTeamVideos(req); err != nil {
+		if resp, err := h.teamService.GetTeamVideos(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {
@@ -27,7 +35,7 @@ func (h *defaultSupportAPIhandler) TeamServiceGetTeamVideos() gin.HandlerFunc {
 	}
 }
 
-func (h *defaultSupportAPIhandler) TeamServiceGetTeamEvents() gin.HandlerFunc {
+func (h *Team) TeamServiceGetTeamEvents() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req idl.TeamEventsReq
 		if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -35,9 +43,7 @@ func (h *defaultSupportAPIhandler) TeamServiceGetTeamEvents() gin.HandlerFunc {
 			return
 		}
 
-		h.teamService.SetDBwithCtx(ctx)
-
-		if resp, err := h.teamService.GetTeamEvents(req); err != nil {
+		if resp, err := h.teamService.GetTeamEvents(ctx, req); err != nil {
 			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
 			return
 		} else {

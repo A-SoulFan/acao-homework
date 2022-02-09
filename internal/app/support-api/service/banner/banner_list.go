@@ -4,12 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"github.com/A-SoulFan/acao-homework/internal/domain"
-	"github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
-
 	"github.com/A-SoulFan/acao-homework/internal/app/support-api/idl"
-
-	svcCtx "github.com/A-SoulFan/acao-homework/internal/app/support-api/context"
+	"github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
+	"github.com/A-SoulFan/acao-homework/internal/repository"
+	"gorm.io/gorm"
 )
 
 const (
@@ -17,28 +15,23 @@ const (
 )
 
 type defaultBannerService struct {
-	svcCtx     *svcCtx.ServiceContext
-	bannerRepo domain.BannerRepo
+	db *gorm.DB
 }
 
-func NewDefaultBannerService(svcCtx *svcCtx.ServiceContext, bannerRepo domain.BannerRepo) idl.BannerService {
+func NewDefaultBannerService(db *gorm.DB) idl.BannerService {
 	return &defaultBannerService{
-		svcCtx:     svcCtx,
-		bannerRepo: bannerRepo,
+		db: db,
 	}
 }
 
-func (bs *defaultBannerService) SetDBwithCtx(ctx context.Context) {
-	db := bs.svcCtx.WithDatabaseContext(ctx)
-	bs.bannerRepo.SetDB(db)
-}
-
-func (bs *defaultBannerService) GetBannerList(req idl.BannerListReq) (*idl.BannerListReply, error) {
+func (bs *defaultBannerService) GetBannerList(ctx context.Context, req idl.BannerListReq) (*idl.BannerListReply, error) {
 	if !checkType(req.Type) {
 		return nil, apperrors.NewValidateError("无效的类型")
 	}
 
-	list, err := bs.bannerRepo.FindAllByType(req.Type)
+	bannerRepo := repository.NewBannerRepo(bs.db.WithContext(ctx))
+
+	list, err := bannerRepo.FindAllByType(req.Type)
 	if err != nil {
 		return nil, err
 	}

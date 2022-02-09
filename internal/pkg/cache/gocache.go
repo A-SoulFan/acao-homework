@@ -1,11 +1,12 @@
 package cache
 
 import (
+	"time"
+
 	"github.com/google/wire"
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
-	"time"
 )
 
 var ProviderSet = wire.NewSet(NewOptions, NewGoCache)

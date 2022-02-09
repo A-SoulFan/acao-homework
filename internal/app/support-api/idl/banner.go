@@ -1,8 +1,9 @@
 package idl
 
+import "context"
+
 type BannerService interface {
-	defaultDB
-	GetBannerList(req BannerListReq) (*BannerListReply, error)
+	GetBannerList(ctx context.Context, req BannerListReq) (*BannerListReply, error)
 }
 
 type BannerListReq struct {

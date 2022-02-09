@@ -3,14 +3,15 @@ package http
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	ginZap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"net/http"
-	"time"
 )
 
 var ProviderSet = wire.NewSet(NewServer, NewRouter, NewOptions)
@@ -24,7 +25,6 @@ type Options struct {
 
 type Server struct {
 	o          *Options
-	app        string
 	host       string
 	port       int
 	logger     *zap.Logger
