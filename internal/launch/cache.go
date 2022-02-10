@@ -1,17 +1,17 @@
 package launch
 
 import (
-	"github.com/A-SoulFan/acao-homework/internal/types"
+	"github.com/A-SoulFan/acao-homework/internal/launch/cache"
 )
 
 var (
-	MilestoneCache      *types.MilestoneCache
-	StrollCache         *types.StrollCache
-	RecommendSliceCache *types.RecommendSliceCache
+	MilestoneCache      *cache.MilestoneCache
+	StrollCache         *cache.StrollCache
+	RecommendSliceCache *cache.RecommendSliceCache
 )
 
 func launchCaches() {
-	MilestoneCache = types.NewMilestoneCache()
-	StrollCache = types.NewStrollCache()
-	RecommendSliceCache = types.NewRecommendSliceCache()
+	MilestoneCache = cache.NewMilestoneCache()
+	StrollCache = cache.NewStrollCache()
+	RecommendSliceCache = cache.NewRecommendSliceCache()
 }
