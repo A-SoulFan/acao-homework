@@ -63,7 +63,7 @@ func InitApp(configFile config.Path) (*App, error) {
 	handlerRecommend := handler.NewRecommendApi(recommendService)
 	bannerService := banner.NewDefaultBannerService(db)
 	handlerBanner := handler.NewBannerApi(bannerService)
-	memberService := member.NewDefaultMemberService()
+	memberService := member.NewDefaultMemberService(db)
 	handlerMember := handler.NewMemberApi(memberService)
 	teamService := team.NewDefaultTeamService(db)
 	handlerTeam := handler.NewTeamApi(teamService)

@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/A-SoulFan/acao-homework/internal/app/support_api/idl"
-	"github.com/A-SoulFan/acao-homework/internal/domain"
 	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
+	"github.com/A-SoulFan/acao-homework/internal/repository"
+	"gorm.io/gorm"
 )
 
 const (
@@ -18,15 +19,16 @@ const (
 )
 
 type defaultMemberService struct {
-	memberRepo domain.KeyValueRepo
+	db *gorm.DB
 }
 
-func NewDefaultMemberService() idl.MemberService {
-	return &defaultMemberService{}
+func NewDefaultMemberService(db *gorm.DB) idl.MemberService {
+	return &defaultMemberService{db: db}
 }
 
 func (ms *defaultMemberService) GetAllMembers(ctx context.Context) (*idl.MemberAll, error) {
-	val, err := ms.memberRepo.FindOneByKey(memberListKey)
+	memberRepo := repository.NewKeyValueRepo(ms.db.WithContext(ctx))
+	val, err := memberRepo.FindOneByKey(memberListKey)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,8 @@ func (ms *defaultMemberService) GetAllMembers(ctx context.Context) (*idl.MemberA
 func (ms *defaultMemberService) GetMemberExperience(ctx context.Context, req idl.MemberExperienceReq) (*idl.MemberExperienceResp, error) {
 	queryKey := fmt.Sprintf("%s%s", memberExperiencePrefix, strings.ToLower(req.MemberName))
 
-	val, err := ms.memberRepo.FindOneByKey(queryKey)
+	memberRepo := repository.NewKeyValueRepo(ms.db.WithContext(ctx))
+	val, err := memberRepo.FindOneByKey(queryKey)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +74,8 @@ func (ms *defaultMemberService) GetMemberExperience(ctx context.Context, req idl
 func (ms *defaultMemberService) GetMemberVideos(ctx context.Context, req idl.MemberVideoReq) (*idl.MemberExperienceResp, error) {
 	queryKey := fmt.Sprintf("%s%s", memberVideoPrefix, strings.ToLower(req.MemberName))
 
-	val, err := ms.memberRepo.FindOneByKey(queryKey)
+	memberRepo := repository.NewKeyValueRepo(ms.db.WithContext(ctx))
+	val, err := memberRepo.FindOneByKey(queryKey)
 	if err != nil {
 		return nil, err
 	}
