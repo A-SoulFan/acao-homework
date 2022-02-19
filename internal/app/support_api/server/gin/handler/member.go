@@ -72,7 +72,11 @@ func (h *Member) MemberServiceGetMemberDebts() gin.HandlerFunc {
 			return
 		}
 
-		resp := h.memberService.GetMemberDebts(ctx, req)
-		ctx.JSON(http.StatusOK, SuccessResponse(resp))
+		if resp, err := h.memberService.GetMemberDebts(ctx, req); err != nil {
+			ctx.JSON(http.StatusInternalServerError, ErrorResponse(err))
+			return
+		} else {
+			ctx.JSON(http.StatusOK, SuccessResponse(resp))
+		}
 	}
 }

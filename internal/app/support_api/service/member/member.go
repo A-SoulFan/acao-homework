@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/A-SoulFan/acao-homework/internal/domain"
 	"sort"
 	"strings"
+
+	"github.com/A-SoulFan/acao-homework/internal/domain"
 
 	"github.com/A-SoulFan/acao-homework/internal/app/support_api/idl"
 	appErr "github.com/A-SoulFan/acao-homework/internal/pkg/apperrors"
@@ -100,7 +101,7 @@ func (ms *defaultMemberService) GetMemberVideos(ctx context.Context, req idl.Mem
 	}, nil
 }
 
-func (ms defaultMemberService) GetMemberDebts(ctx context.Context, req idl.MemberDebtReq) []*domain.Debt {
+func (ms defaultMemberService) GetMemberDebts(ctx context.Context, req idl.MemberDebtReq) ([]*domain.Debt, error) {
 	isAll := true
 	var memberNames []string
 	cacheKey := "all"
@@ -117,7 +118,7 @@ func (ms defaultMemberService) GetMemberDebts(ctx context.Context, req idl.Membe
 	debtRepo := repository.NewDebtRepo()
 	debtRes := debtRepo.GetCache(cacheKey)
 	if debtRes != nil {
-		return debtRes
+		return debtRes, nil
 	}
 
 	// 根据所有找到符合要去的
@@ -130,11 +131,11 @@ func (ms defaultMemberService) GetMemberDebts(ctx context.Context, req idl.Membe
 		memberRepo := repository.NewKeyValueRepo(ms.db.WithContext(ctx))
 		val, err := memberRepo.FindOneByKey(memberDebtListKey)
 		if err != nil {
-			return []*domain.Debt{}
+			return []*domain.Debt{}, nil
 		}
 		var list []*domain.Debt
 		if err := json.Unmarshal(val.Value, &list); err != nil {
-			return []*domain.Debt{}
+			return []*domain.Debt{}, nil
 		}
 
 		allDebts = list
@@ -144,23 +145,21 @@ func (ms defaultMemberService) GetMemberDebts(ctx context.Context, req idl.Membe
 
 	var debtVal []*domain.Debt
 	// 遍历取出符合条件的
-	OuterLoop:
-		for _, debt := range allDebts {
-			debt := debt
-			for _, tag := range debt.Tags {
-				memberName := tag.Key
-				for _, val := range memberNames {
-					val := val
-					if val == memberName {
-						debtVal = append(debtVal, debt)
-						continue OuterLoop
-					}
+OuterLoop:
+	for _, debt := range allDebts {
+		debt := debt
+		for _, tag := range debt.Tags {
+			memberName := tag.Key
+			for _, val := range memberNames {
+				val := val
+				if val == memberName {
+					debtVal = append(debtVal, debt)
+					continue OuterLoop
 				}
 			}
 		}
-
-
+	}
 
 	debtRepo.SetCache(cacheKey, debtVal)
-	return debtVal
+	return debtVal, nil
 }
