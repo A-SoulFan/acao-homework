@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/A-SoulFan/acao-homework/internal/domain"
+	"sort"
 	"strings"
 
 	"github.com/A-SoulFan/acao-homework/internal/app/support_api/idl"
@@ -16,6 +18,7 @@ const (
 	memberListKey          = "member_list"
 	memberExperiencePrefix = "member_experience_"
 	memberVideoPrefix      = "member_videos_"
+	memberDebtListKey      = "member_debt_list"
 )
 
 type defaultMemberService struct {
@@ -95,4 +98,69 @@ func (ms *defaultMemberService) GetMemberVideos(ctx context.Context, req idl.Mem
 		TotalPage:  1,
 		VideoList:  list,
 	}, nil
+}
+
+func (ms defaultMemberService) GetMemberDebts(ctx context.Context, req idl.MemberDebtReq) []*domain.Debt {
+	isAll := true
+	var memberNames []string
+	cacheKey := "all"
+	if len(req.MemberName) != 0 {
+		isAll = false
+		queryKey := strings.ToLower(req.MemberName)
+		memberNames = strings.Split(queryKey, ",")
+		// 排序
+		sort.Strings(memberNames)
+		cacheKey = strings.Join(memberNames, "-")
+	}
+
+	// 先查询缓存看是否有值
+	debtRepo := repository.NewDebtRepo()
+	debtRes := debtRepo.GetCache(cacheKey)
+	if debtRes != nil {
+		return debtRes
+	}
+
+	// 根据所有找到符合要去的
+	var allDebts []*domain.Debt
+	if !isAll {
+		allDebts = debtRepo.GetCache("all")
+	}
+
+	if allDebts == nil || isAll {
+		memberRepo := repository.NewKeyValueRepo(ms.db.WithContext(ctx))
+		val, err := memberRepo.FindOneByKey(memberDebtListKey)
+		if err != nil {
+			return []*domain.Debt{}
+		}
+		var list []*domain.Debt
+		if err := json.Unmarshal(val.Value, &list); err != nil {
+			return []*domain.Debt{}
+		}
+
+		allDebts = list
+		debtRepo.SetCache("all", allDebts)
+
+	}
+
+	var debtVal []*domain.Debt
+	// 遍历取出符合条件的
+	OuterLoop:
+		for _, debt := range allDebts {
+			debt := debt
+			for _, tag := range debt.Tags {
+				memberName := tag.Key
+				for _, val := range memberNames {
+					val := val
+					if val == memberName {
+						debtVal = append(debtVal, debt)
+						continue OuterLoop
+					}
+				}
+			}
+		}
+
+
+
+	debtRepo.SetCache(cacheKey, debtVal)
+	return debtVal
 }

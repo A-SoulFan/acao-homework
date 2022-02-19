@@ -48,5 +48,7 @@ func InitRouter(
 		r.GET("/asf/mobile/team/videos", TeamApi.TeamServiceGetTeamVideos())
 		// 团队事件
 		r.GET("/asf/mobile/team/events", TeamApi.TeamServiceGetTeamEvents())
+		// 成员负债
+		r.GET("/asf/mobile/member/debts", memberApi.MemberServiceGetMemberDebts())
 	}
 }

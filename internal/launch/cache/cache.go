@@ -62,3 +62,27 @@ func (rsc *RecommendSliceCache) Set(videos []*domain.RecommendVideo) {
 func (rsc *RecommendSliceCache) Get() []*domain.RecommendVideo {
 	return rsc.data
 }
+
+func NewDebtCache() *DebtCache {
+	return &DebtCache{
+		data: make(map [string][]*domain.Debt),
+	}
+}
+
+type DebtCache struct {
+	data map[string][]*domain.Debt
+	lock sync.Mutex
+}
+
+func (dc *DebtCache) Set(key string, debt []*domain.Debt) {
+	dc.lock.Lock()
+	defer dc.lock.Unlock()
+	dc.data[key] = debt
+}
+
+func (dc *DebtCache) Get(key string) []*domain.Debt {
+	if val, ok := dc.data[key]; ok {
+		return val
+	}
+	return nil
+}

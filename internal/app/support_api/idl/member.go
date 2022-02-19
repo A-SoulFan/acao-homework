@@ -1,11 +1,15 @@
 package idl
 
-import "context"
+import (
+	"context"
+	"github.com/A-SoulFan/acao-homework/internal/domain"
+)
 
 type MemberService interface {
 	GetAllMembers(ctx context.Context) (*MemberAll, error)
 	GetMemberExperience(ctx context.Context, req MemberExperienceReq) (*MemberExperienceResp, error)
 	GetMemberVideos(ctx context.Context, req MemberVideoReq) (*MemberExperienceResp, error)
+	GetMemberDebts(ctx context.Context, req MemberDebtReq) ([]*domain.Debt)
 }
 
 type MemberAll struct {
@@ -32,4 +36,8 @@ type MemberVideoResp struct {
 	TotalCount int         `json:"totalCount"`
 	TotalPage  int         `json:"totalPage"`
 	VideoList  interface{} `json:"videoList"`
+}
+
+type MemberDebtReq struct {
+	MemberName string `form:"memberName" binding:"required"`
 }

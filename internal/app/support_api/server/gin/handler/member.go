@@ -63,3 +63,16 @@ func (h *Member) MemberServiceGetMemberVideos() gin.HandlerFunc {
 		}
 	}
 }
+
+func (h *Member) MemberServiceGetMemberDebts() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var req idl.MemberDebtReq
+		if err := ctx.ShouldBindQuery(&req); err != nil {
+			ctx.JSON(http.StatusBadRequest, response.NewServerErrorResponse(err))
+			return
+		}
+
+		resp := h.memberService.GetMemberDebts(ctx, req)
+		ctx.JSON(http.StatusOK, SuccessResponse(resp))
+	}
+}
