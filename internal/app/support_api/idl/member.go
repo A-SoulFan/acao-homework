@@ -40,5 +40,5 @@ type MemberVideoResp struct {
 }
 
 type MemberDebtReq struct {
-	MemberName string `form:"memberName" binding:"required,oneof=ava bella carol diana eileen"`
+	MemberName string `form:"memberName" binding:"omitempty"`
 }
